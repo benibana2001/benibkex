@@ -1,0 +1,26 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:esbuild": "cp manifest.json ./dist && npx esbuild src/service_worker.js src/content.js --bundle --format=esm --outdir=dist --outbase=src",
+    "build:cp": "cp manifest.json ./dist && cp src/service_worker.js ./dist"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "benibana_bookdata": "^0.1.6",
+    "tree-model": "github:joaonuno/tree-model-js",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
+    "esbuild": "^0.18.11",
+    "eslint": "^8.44.0"
+  }
+}

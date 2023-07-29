@@ -1,15 +1,10 @@
 import { beniBook } from 'benibana_bookdata';
-import {
-  contexts,
-  CTX_ID_GET_COVER,
-  CTX_ID_GET_LIBRARY_COLLECTION
-} from './contextTree.js';
+import { contexts, CTX_ID_GET_LIBRARY_COLLECTION } from './contextTree.js';
 
 /**
  * DOMから取得した文字列を保持する
  */
 let isbn = '';
-// TODO: 動作確認
 /**
  * isbn13を受け取り格納するハンドラー
  *

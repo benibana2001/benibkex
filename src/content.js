@@ -5,10 +5,12 @@
   );
 
   /**
-   * Message処理。
-   * service_worker.jsにメッセージを送信
-   *
-   * isbn-13がDOMにない場合は, 明示的にnullを渡す
+   * 
+   * メッセージ送信処理。
+   * 
+   * DOMからisbn-13の値を取得しservice_worker.jsに送信する
+   * isbn-13がDOMにない場合は, 明示的にnullを送信する
+   * 
    */
   if (elemISBN && elemISBN.textContent) {
     const isbn13 = elemISBN.textContent.replace('-', '');
@@ -16,23 +18,27 @@
     console.log(response);
   } else {
     await chrome.runtime.sendMessage({ isbn13: null });
-    console.log('no isbn-13');
+    console.log('isbn-13の情報がこのページには存在しません');
   }
 
   /**
-   * 受信処理
+   * メッセージ受信処理
+   * 
+   * service_workerで外部APIの情報取得が完了した際にメッセージを受信
+   * ここでは受信した情報をもとにHTMLDialogElementを作成して表示する
+   * dialogには下記の受信した情報を表示する
+   *  - 予約画面へのリンク
+   *  - 図書館別の蔵書情報
    */
   chrome.runtime.onMessage.addListener(
     ({ reserveurl, libraryStock }, sender, sendResponse) => {
-      console.log(
-        sender.tab
-          ? 'from a content script:' + sender.tab.url
-          : 'from the extension'
-      );
-      // if (request.greeting === 'hello') sendResponse({ farewell: 'goodbye' });
+      // memo: sender.tab.urlでタブの情報を取得可能
 
       /**
        * ダイアログ作成
+       *
+       * TODO: CSS調整
+       * TODO: 予約画面が存在しない場合の処理
        */
       const dialog = document.createElement('dialog');
       document.body.append(dialog);

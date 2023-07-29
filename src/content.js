@@ -1,3 +1,4 @@
+import { PrefectureList } from 'benibana_bookdata';
 (async () => {
   // DOMを取得する
   const elemISBN = document.querySelector(
@@ -5,12 +6,12 @@
   );
 
   /**
-   * 
+   *
    * メッセージ送信処理。
-   * 
+   *
    * DOMからisbn-13の値を取得しservice_worker.jsに送信する
    * isbn-13がDOMにない場合は, 明示的にnullを送信する
-   * 
+   *
    */
   if (elemISBN && elemISBN.textContent) {
     const isbn13 = elemISBN.textContent.replace('-', '');
@@ -23,7 +24,7 @@
 
   /**
    * メッセージ受信処理
-   * 
+   *
    * service_workerで外部APIの情報取得が完了した際にメッセージを受信
    * ここでは受信した情報をもとにHTMLDialogElementを作成して表示する
    * dialogには下記の受信した情報を表示する
@@ -31,47 +32,67 @@
    *  - 図書館別の蔵書情報
    */
   chrome.runtime.onMessage.addListener(
-    ({ reserveurl, libraryStock }, sender, sendResponse) => {
+    ({ systemid, reserveurl, libraryStock }, sender, sendResponse) => {
       // memo: sender.tab.urlでタブの情報を取得可能
 
       /**
        * ダイアログ作成
        *
-       * TODO: CSS調整
        * TODO: 予約画面が存在しない場合の処理
        */
       const dialog = document.createElement('dialog');
+      dialog.style = 'border: gray 2px solid; border-radius: 6px;';
       document.body.append(dialog);
       const elems = {
         wrapper: document.createElement('div'),
+        title: document.createElement('p'),
         linkReservePage: document.createElement('a'),
         statusBookStock: document.createElement('div'),
         close: document.createElement('button'),
         init: () => {
           console.log('init');
           elems.close.innerText = '閉じる';
-          elems.close.style = 'text-decoration: underline; color: gray;';
+          elems.close.style = 'color: gray;';
         }
       };
 
       elems.init();
+      elems.title.innerText = (() => {
+        let prefectureName = '';
+
+        PrefectureList.forEach(([id, name]) => {
+          if (id === systemid) {
+            prefectureName = name;
+          }
+        });
+
+        console.log(prefectureName);
+        return prefectureName ? `${prefectureName} の蔵書` : '';
+      })();
+      elems.title.style = 'font-size:18px;text-align:center;';
       elems.linkReservePage.href = reserveurl;
       elems.linkReservePage.target = '_blank';
       elems.linkReservePage.innerText = '予約画面を表示';
 
       if (libraryStock.length > 0) {
-        libraryStock.forEach(({ libraryID, libraryName, borrowingStatus }) => {
+        libraryStock.forEach(({ libraryName, borrowingStatus }) => {
           const item = document.createElement('li');
           const canRent = borrowingStatus.includes('可') ? true : false;
-          item.innerText = `${libraryID}.${libraryName}: 貸出状況：${borrowingStatus}`;
+          const span1 = document.createElement('span');
+          const span2 = document.createElement('span');
+          span1.innerText = libraryName;
+          span2.innerText = `...${borrowingStatus}`;
           item.style = canRent
-            ? 'font-weight:bold;color:#2b821f'
-            : 'color:#373737';
+            ? 'display:flex;justify-content:space-around;font-weight:bold;color:#2b821f'
+            : 'display:flex;justify-content:space-around;color:#373737';
+          item.append(span1, span2);
           elems.statusBookStock.append(item);
         });
+        libraryStock.style = 'padding:6px 0;';
       }
 
       elems.wrapper.append(
+        elems.title,
         elems.statusBookStock,
         elems.linkReservePage,
         elems.close

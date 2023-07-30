@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:esbuild": "npx esbuild src/service_worker.js src/content.js --bundle --format=esm --outdir=dist --outbase=src && npm run cp:manifest",
-    "cp:manifest": "cp manifest.json ./dist"
+    "build:esbuild": "npx esbuild src/service_worker.js src/content.js --bundle --format=esm --outdir=dist --outbase=src && npm run cp:manifest && npm run cp:icons",
+    "cp:manifest": "cp manifest.json ./dist",
+    "cp:icons": "cp icons/* ./dist"
   },
   "author": "",
   "license": "ISC",

@@ -27,6 +27,7 @@ import { dispatch } from './variable.js';
 
           if (elemISBN && elemISBN.textContent) {
             isbn13 = elemISBN.textContent.replace('-', '');
+            console.log('message send')
             await chrome.runtime.sendMessage({
               isbn13
             });
@@ -61,7 +62,7 @@ const createDialog = ({ systemid, reserveurl, libraryStock }) => {
    * TODO: 予約画面が存在しない場合の処理
    */
   const dialog = document.createElement('dialog');
-  dialog.style = 'border: gray 2px solid; border-radius: 6px;';
+  dialog.setAttribute('style', 'border: gray 2px solid; border-radius: 6px;');
   document.body.append(dialog);
   const elems = {
     wrapper: document.createElement('div'),
@@ -71,7 +72,7 @@ const createDialog = ({ systemid, reserveurl, libraryStock }) => {
     close: document.createElement('button'),
     init: () => {
       elems.close.innerText = '閉じる';
-      elems.close.style = 'color: gray;';
+      elems.close.setAttribute('style', 'color: gray;');
     }
   };
 
@@ -87,7 +88,7 @@ const createDialog = ({ systemid, reserveurl, libraryStock }) => {
 
     return prefectureName ? `${prefectureName} の蔵書` : '';
   })();
-  elems.title.style = 'font-size:18px;text-align:center;';
+  elems.title.setAttribute('style', 'font-size:18px;text-align:center;');
   elems.linkReservePage.href = reserveurl;
   elems.linkReservePage.target = '_blank';
   elems.linkReservePage.innerText = '予約画面を表示';
@@ -100,9 +101,17 @@ const createDialog = ({ systemid, reserveurl, libraryStock }) => {
       const span2 = document.createElement('span');
       span1.innerText = libraryName;
       span2.innerText = `...${borrowingStatus}`;
-      item.style = canRent
-        ? 'display:flex;justify-content:space-around;font-weight:bold;color:#2b821f'
-        : 'display:flex;justify-content:space-around;color:#373737';
+      if (canRent) {
+        item.setAttribute(
+          'style',
+          'display:flex;justify-content:space-around;font-weight:bold;color:#2b821f'
+        );
+      } else {
+        item.setAttribute(
+          'style',
+          'display:flex;justify-content:space-around;color:#373737'
+        );
+      }
       item.append(span1, span2);
       elems.statusBookStock.append(item);
     });

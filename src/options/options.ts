@@ -27,6 +27,14 @@ const restoreOptions = () => {
   //     document.getElementById('like').checked = items.likesColor;
   //   }
   // );
+  const parent = document.getElementById('pref');
+  PrefectureList.forEach(([id, name]) => {
+    const child = document.createElement('option')
+    child.value = id;
+    child.text = name;
+    parent?.append(child);
+  })
+
 };
 
 document.addEventListener('DOMContentLoaded', restoreOptions);

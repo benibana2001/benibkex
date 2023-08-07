@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf ./dist && node ./build.js && npm run cp:manifest && npm run cp:icons && cp src/options/options.html ./dist/  ",
+    "build": "npm run clear && node ./build.js && npm run cp:manifest && npm run cp:icons && cp src/options/options.html ./dist/  ",
     "cp:manifest": "cp manifest.json ./dist",
     "cp:icons": "cp icons/* ./dist",
-    "cp:options": "cp src/options/options.html ./dist/options/ "
+    "cp:options": "cp src/options/options.html ./dist/options/",
+    "clear": "npx rimraf ./dist"
   },
   "author": "",
   "license": "ISC",
@@ -23,6 +24,7 @@
     "@typescript-eslint/parser": "^5.61.0",
     "esbuild": "^0.18.11",
     "eslint": "^8.44.0",
+    "rimraf": "^5.0.1",
     "rollup": "^3.27.2",
     "vite": "^4.4.8"
   },

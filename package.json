@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npm run clear && node ./build.js && npm run cp:manifest && npm run cp:icons && cp src/options/options.html ./dist/  ",
+    "build": "npm run clear && npm run bundle && npm run cp",
+    "build_staging": "npm run clear && npm run bundle_staging && npm run cp ",
+    "bundle":"node ./build.js",
+    "bundle_staging":"node ./build.js staging",
+    "cp": "npm run cp:manifest && npm run cp:icons && cp src/options/options.html ./dist/",
     "cp:manifest": "cp manifest.json ./dist",
     "cp:icons": "cp icons/* ./dist",
     "cp:options": "cp src/options/options.html ./dist/options/",

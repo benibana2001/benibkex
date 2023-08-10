@@ -5,57 +5,51 @@ import { dispatch } from './variable.js';
    * service_workerに送信するISBN
    */
   let isbn13 = '';
+  const elemISBN = document.querySelector(
+    '#rpi-attribute-book_details-isbn13 .rpi-attribute-value span'
+  );
+
+  /**
+   * メッセージ送信処理。
+   * - DOMからisbn-13の値を取得しservice_worker.jsに送信する
+   * - isbn-13がDOMにない場合は, 明示的にnullを送信する
+   */
+  if (elemISBN && elemISBN.textContent) {
+    isbn13 = elemISBN.textContent.replace('-', '');
+    // メッセージ送信
+    await chrome.runtime.sendMessage({
+      isbn13
+    });
+  } else {
+    await chrome.runtime.sendMessage({ isbn13: null });
+    console.log('isbn-13の情報がこのページには存在しません');
+  }
 
   /**
    * メッセージ受信処理
    * - action: service_workerから指定された動作
    * - payload:
    */
-  chrome.runtime.onMessage.addListener(
-    async ({ action, payload }, sender, sendResponse) => {
-      // memo: sender.tab.urlでタブの情報を取得可能
-      switch (action) {
-        /**
-         * メッセージ送信処理。
-         * - DOMからisbn-13の値を取得しservice_worker.jsに送信する
-         * - isbn-13がDOMにない場合は, 明示的にnullを送信する
-         */
-        case dispatch[0]: {
-          const elemISBN = document.querySelector(
-            '#rpi-attribute-book_details-isbn13 .rpi-attribute-value span'
-          );
-
-          if (elemISBN && elemISBN.textContent) {
-            isbn13 = elemISBN.textContent.replace('-', '');
-            console.log('message send')
-            await chrome.runtime.sendMessage({
-              isbn13
-            });
-          } else {
-            await chrome.runtime.sendMessage({ isbn13: null });
-            console.log('isbn-13の情報がこのページには存在しません');
-          }
-          return;
-        }
-        /**
-         * ダイアログ表示処理
-         * - service_workerで外部APIの情報取得が完了した際にメッセージを受信
-         * - 受信した情報をもとに図書館の貸出状況を表示
-         *   - 予約画面へのリンク
-         *   - 図書館別の蔵書情報
-         * - 蔵書が存在しない場合は
-         */
-        // TODO:蔵書が存在しない場合
-        case dispatch[1]: {
-          createDialog(payload);
-          break;
-        }
-        default:
+  chrome.runtime.onMessage.addListener(async ({ action, payload }) => {
+    switch (action) {
+      // ダイアログ表示
+      case dispatch[1]: {
+        createDialog(payload);
+        break;
       }
+      default:
     }
-  );
+  });
 })();
 
+/**
+ * ダイアログ表示処理
+ * - service_workerで外部APIの情報取得が完了した際にメッセージを受信
+ * - 受信した情報をもとに図書館の貸出状況を表示
+ *   - 予約画面へのリンク
+ *   - 図書館別の蔵書情報
+ * - 蔵書が存在しない場合は
+ */
 const createDialog = ({ systemid, reserveurl, libraryStock }) => {
   /**
    * ダイアログ作成

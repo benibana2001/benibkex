@@ -1,1 +1,1 @@
-export const dispatch = ['getIsbn', 'showLibraryStock'];
+export const dispatch = ['getIsbn', 'showLibraryStock', 'init'];

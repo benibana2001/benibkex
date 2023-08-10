@@ -38,7 +38,7 @@ async function buildPackages() {
   }
 }
 
-async function buildReact() {
+async function buildOptionPageTSX() {
   await build({
     plugins: [react({ include: /\.(mdx|js|jsx|ts|tsx)$/ })],
     esbuild: {
@@ -59,7 +59,7 @@ async function buildReact() {
   });
 }
 
-async function buildCSS() {
+async function buildOptionPageSCSS() {
   await build({
     build: {
       // cssCodeSplit: true,
@@ -78,5 +78,5 @@ async function buildCSS() {
 }
 
 buildPackages();
-buildReact();
-buildCSS();
+buildOptionPageTSX();
+buildOptionPageSCSS();

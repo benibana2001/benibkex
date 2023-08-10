@@ -17,6 +17,7 @@ let isbn = '';
  * - isbnが存在しないときはContextMenuを作成しない
  */
 const onMessageHandler = (request, sender, sendResponse) => {
+  chrome.contextMenus.removeAll();
   isbn = request['isbn13'];
   console.log('isbn', isbn);
   // isbnがある場合はContextMenuを作成
@@ -27,27 +28,26 @@ const onMessageHandler = (request, sender, sendResponse) => {
   } else {
     sendResponse('NO ISBN-13');
     // TODO: ISBNがない旨をCOntextMenuに表示する
+    // TODO: ISBNがない旨をpopupに表示する
   }
 };
 
 /**
- * ContextMenuクリックでCalil接続 + contentsに結果を送信
+ * 書影検索
+ * - ContextMenuクリックでCalil接続 + contentsに結果を送信
  * - ISBNがない場合は検索を実行しない
  * - 蔵書が図書館にない場合もからの情報をcontentsに送信
  */
 const contextClickHandler = async (info) => {
-  console.log('click');
   if (!isbn) return;
-  // 書影取得など、今後 別機能を実装する際を見越して、ContextMenuでクリックされた要素ごとにswitchで分岐処理している
   console.log('info.parentMenuItemId', info.parentMenuItemId);
+  // CaliのオプションをInit
+  const CALIL_KEY = '46a2412f4ceb07b72a251150f2533c74';
+  const pollingDuration = 500;
+
   if (info.parentMenuItemId === CTX_ID_GET_LIBRARY_COLLECTION_FROM_RADIO) {
-    console.log('B');
-    // 書影検索実行
-    // CaliのオプションをInit
-    const CALIL_KEY = '46a2412f4ceb07b72a251150f2533c74';
-    const systemid = info.menuItemId;
-    const pollingDuration = 500;
     // CalilAPIに接続し蔵書検索を実行
+    const systemid = info.menuItemId;
     const res = await beniBook.searchLibraryCollections({
       appkey: CALIL_KEY,
       isbn,
@@ -61,10 +61,7 @@ const contextClickHandler = async (info) => {
       lastFocusedWindow: true
     });
 
-    if (!tab.id) {
-      console.log('tab', tab);
-      return;
-    }
+    if (!tab.id) return;
     console.log('A');
     await chrome.tabs.sendMessage(tab.id, {
       action: dispatch[1],
@@ -77,11 +74,37 @@ const contextClickHandler = async (info) => {
     return;
   }
 
+  /**
+   * デフォルトで設定した地域から検索を実行
+   */
   if (info.menuItemId === CTX_ID_GET_LIBRARY_COLLECTION_FROM_OPTIONS_DATA) {
-    chrome.storage.sync.get('favoriteColor', (val) => {
+    chrome.storage.sync.get('value', async (val) => {
       console.log('val', val);
+      // val を使用して検索を実行
+      const res = await beniBook.searchLibraryCollections({
+        appkey: CALIL_KEY,
+        isbn,
+        systemid: val.value,
+        pollingDuration
+      });
+      const { libraryStock, reserveurl } = res;
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true
+      });
+
+      if (!tab.id) return;
+      console.log('A');
+      await chrome.tabs.sendMessage(tab.id, {
+        action: dispatch[1],
+        payload: {
+          systemid: val.value,
+          reserveurl,
+          libraryStock
+        }
+      });
+      return;
     });
-    return;
   }
 
   // 予期せぬ要素がクリックされた場合はエラーとする
@@ -90,12 +113,12 @@ const contextClickHandler = async (info) => {
 
 /**
  * フロントにISBNの取得を依頼
- * - タブ切替時を検知したら、フロントに対してISBNを再送信するよう通知する
+ * - タブ切替, リロードを検知したら、フロントに対してISBNを再送信するよう通知する
  * - Amazon.co.jp以外では不要のため実行しない.
  *  - workerは全てのページでタブ切り替えを検知するため、明示的に実行をキャンセルする必要あり
  * - タブ切替時に初期化する（ContextMenuを削除）
  */
-const onTabActivated = async () => {
+const onPageInit = async () => {
   chrome.contextMenus.removeAll();
   const [tab] = await chrome.tabs.query({
     active: true,
@@ -132,5 +155,5 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 chrome.contextMenus.onClicked.addListener(contextClickHandler);
 chrome.runtime.onMessage.addListener(onMessageHandler);
-chrome.tabs.onActivated.addListener(onTabActivated);
-// TODO:reload時, 新規タブOpen時、これらでもフロントにISBN取得を要請する
+chrome.tabs.onActivated.addListener(onPageInit);
+chrome.tabs.onUpdated.addListener(onPageInit);

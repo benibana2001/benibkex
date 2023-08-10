@@ -1,37 +1,20 @@
 import { createRoot } from 'react-dom';
 import React from 'react'; // Import React directly, no need for 'createElement'
 import { PrefectureList } from 'benibana_bookdata';
-import { useEffect, useRef } from 'react';
-
-// TODO: Save 時にToast
-// // Saves options to chrome.storage
-// const saveOptions = () => {
-//   const elem = document.getElementById('pref') as HTMLSelectElement;
-//   const { value } = elem;
-
-//   // option保存をする
-//   chrome.storage.sync.set({ value }, () => {
-//     // Update status to let user know options were saved.
-//     const status = document.getElementById('status') as HTMLDivElement;
-//     if (status) {
-//       status.textContent = 'Options saved.';
-//     }
-//     setTimeout(() => {
-//       if (status) {
-//         status.textContent = '';
-//       }
-//     }, 750);
-//   });
-// };
+import { useEffect, useRef, useState } from 'react';
 
 function MainDOM() {
+  const [saved, setSaved] = useState(false);
   const selectRef = useRef(null);
 
-  function save() {
+  const saveHandler = () => {
     chrome.storage.sync.set({ value: selectRef.current.value }).then(() => {
-      console.log('Value is set');
+      setSaved(true);
+      setTimeout(() => {
+        setSaved(false);
+      }, 3000);
     });
-  }
+  };
 
   useEffect(() => {
     // storageを読み込んで画面に反映する
@@ -40,17 +23,17 @@ function MainDOM() {
         PrefectureList.forEach((item, index) => {
           if (item[0] === value) {
             selectRef.current[index + 1].selected = true;
-            // parent.getElementsByTagName('option')[index + 1].selected = true;
             // TODO: breakするように なんかfor文は動作しない
           }
         });
       }
     });
   }, []);
+
   return (
     <>
-      <section class="content section">
-        <div className="container is-max-desktop">
+      <div className="container is-max-desktop">
+        <section class="content section">
           <h1 className="title">benibkex</h1>
           <div className="card">
             <div className="card-header">
@@ -72,7 +55,7 @@ function MainDOM() {
             </div>
 
             <footer className="card-footer">
-              <a id="save" className="card-footer-item" onClick={save}>
+              <a id="save" className="card-footer-item" onClick={saveHandler}>
                 Save
               </a>
               {/* <a id="delete" className="card-footer-item">
@@ -80,8 +63,21 @@ function MainDOM() {
               </a> */}
             </footer>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* 保存通知 */}
+        {saved && (
+          <article class="message is-success">
+            <div class="message-body">
+              <div class="content has-text-centered">
+                <p>
+                  new setting is <strong>saved !</strong>
+                </p>
+              </div>
+            </div>
+          </article>
+        )}
+      </div>
 
       <footer class="footer">
         <div class="content has-text-centered">

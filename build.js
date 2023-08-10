@@ -1,5 +1,6 @@
 import { build } from 'vite';
 import { argv } from 'node:process';
+import react from '@vitejs/plugin-react';
 
 // staging環境ではlog消去、minifyを行わない
 const STAGING = argv[2] && argv[2] === 'staging';
@@ -11,9 +12,6 @@ const packages = [
   {
     content: 'src/content.ts'
   },
-  {
-    options: 'src/options/options.ts'
-  }
 ];
 
 async function buildPackages() {
@@ -40,4 +38,45 @@ async function buildPackages() {
   }
 }
 
+async function buildReact() {
+  await build({
+    plugins: [react({ include: /\.(mdx|js|jsx|ts|tsx)$/ })],
+    esbuild: {
+      loader: 'tsx'
+    },
+    build: {
+      emptyOutDir: false,
+      rollupOptions: {
+        input: {
+          options: 'src/options/options.tsx'
+        },
+        output: {
+          dir: 'dist',
+          entryFileNames: `[name].js`
+        }
+      }
+    }
+  });
+}
+
+async function buildCSS() {
+  await build({
+    build: {
+      // cssCodeSplit: true,
+      emptyOutDir: false,
+      rollupOptions: {
+        input: {
+          option: 'src/options/options.scss'
+        },
+        output: {
+          dir: 'dist',
+          assetFileNames: `[name].css`
+        }
+      }
+    }
+  });
+}
+
 buildPackages();
+buildReact();
+buildCSS();

@@ -1,0 +1,12 @@
+// REF: import bulma in Vite https://github.com/vitejs/vite/issues/382
+
+// REF: about bulma modules https://bulma.io/documentation/overview/modular/
+
+@import 'bulma/bulma.sass';
+// TODO: 下記のように個別のbulma-sassファイルを読むことでバンドルサイズを軽量化
+// @import 'bulma/sass/elements/button.sass';
+
+body {
+  margin: 0 auto;
+  padding: 20px 0;
+}

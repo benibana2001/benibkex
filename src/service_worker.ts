@@ -186,3 +186,11 @@ chrome.runtime.onInstalled.addListener(async () => {
     if (isAmazonItemPage) chrome.tabs.reload(tab.id);
   });
 });
+
+// タブ削除イベント
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (tabs.get(tabId)) tabs.delete(tabId);
+  console.log('TAB REMOVED');
+  console.log('tabId', tabId);
+  console.log('tabs', tabs);
+});

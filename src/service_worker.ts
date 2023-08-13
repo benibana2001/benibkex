@@ -133,6 +133,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       });
       return;
     });
+    return;
   }
 
   // 予期せぬ要素がクリックされた場合はエラーとする

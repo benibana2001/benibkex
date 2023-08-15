@@ -1,58 +1,60 @@
 import { PrefectureList } from 'benibana_bookdata';
 import { dispatch } from './variable.js';
 import { createRoot, createPortal } from 'react-dom';
-import React, { useRef } from 'react'; // Import React directly, no need for 'createElement'
+import React, { useRef } from 'react';
 
 (async () => {
-  /**
-   * service_workerに送信するISBN
-   */
-  let isbn13 = '';
-  const elemISBN = document.querySelector(
-    '#rpi-attribute-book_details-isbn13 .rpi-attribute-value span'
-  );
-
   /**
    * メッセージ送信処理。
    * - DOMからisbn-13の値を取得しservice_worker.jsに送信する
    * - isbn-13がDOMにない場合は, 明示的にnullを送信する
    */
-  if (elemISBN && elemISBN.textContent) {
-    isbn13 = elemISBN.textContent.replace('-', '');
-    // メッセージ送信
-    await chrome.runtime.sendMessage({
-      isbn13
-    });
-  } else {
-    await chrome.runtime.sendMessage({ isbn13: null });
-    console.log('isbn-13の情報がこのページには存在しません');
-  }
+  const isbn13 = getElemISBN();
+  console.log('isbn13', isbn13);
+  await chrome.runtime.sendMessage({
+    isbn13
+  });
 
   /**
    * メッセージ受信処理
    * - action: service_workerから指定された動作
    * - payload:
    */
+  const domNode = document.createElement('div');
+  document.body.append(domNode);
+
   chrome.runtime.onMessage.addListener(async ({ action, payload }) => {
     switch (action) {
       // ダイアログ表示
       case dispatch[1]: {
-        /**
-         * Render Dialog Component
-         */
-        const domNode = document.createElement('div');
+        // Render Dialog Component
         const root = createRoot(domNode);
-        document.body.append(domNode);
         root.render(<DialogManager payload={payload} root={root} />);
         break;
       }
-      default:
     }
   });
 })();
 
 /**
+ * service_workerに送信するISBN
+ */
+function getElemISBN(): string {
+  const elemISBN = document.querySelector(
+    '#rpi-attribute-book_details-isbn13 .rpi-attribute-value span'
+  );
+  if (elemISBN && elemISBN.textContent) {
+    return elemISBN.textContent.replace('-', '');
+  }
+  return '';
+}
+
+/**
  * DialogManager
+ * - DialogコンポーネントをPortalとしてbodyにappendする
+ * - コンポーネントをrootからunmountする機能をDialogのCloseメソッドして渡す
+ * - これはDialogのCloseボタンから実行可能とする
+ *
  * @param payload
  * @returns
  */
@@ -70,6 +72,10 @@ function DialogManager({ payload, root }) {
 
 /**
  * Dialog Component
+ *
+ * - 外部APIから渡ってきたpayloadを表示するDialog
+ * - libraryStock（蔵書情報）をもとにテーブルを描画する.
+ * - 蔵書情報がない場合はその旨を表示
  * @param param0
  * @returns
  */

@@ -8,10 +8,10 @@ const STAGING = argv[2] && argv[2] === 'staging';
 const packages = [
   {
     service_worker: 'src/service_worker.ts'
-  },
-  {
-    content: 'src/content.ts'
-  },
+  }
+  // {
+  //   content: 'src/content.ts'
+  // },
 ];
 
 async function buildPackages() {
@@ -38,6 +38,28 @@ async function buildPackages() {
   }
 }
 
+async function buildContentTSX() {
+  await build({
+    plugins: [react({ include: /\.(mdx|js|jsx|ts|tsx)$/ })],
+    esbuild: {
+      loader: 'tsx'
+    },
+    build: {
+      minify: STAGING ? false : 'esbuild',
+      target: 'esnext',
+      emptyOutDir: false,
+      rollupOptions: {
+        input: {
+          content: 'src/content.tsx'
+        },
+        output: {
+          dir: 'dist',
+          entryFileNames: `[name].js`
+        }
+      }
+    }
+  });
+}
 async function buildOptionPageTSX() {
   await build({
     plugins: [react({ include: /\.(mdx|js|jsx|ts|tsx)$/ })],
@@ -45,6 +67,7 @@ async function buildOptionPageTSX() {
       loader: 'tsx'
     },
     build: {
+      minify: STAGING ? false : 'esbuild',
       emptyOutDir: false,
       rollupOptions: {
         input: {
@@ -53,6 +76,24 @@ async function buildOptionPageTSX() {
         output: {
           dir: 'dist',
           entryFileNames: `[name].js`
+        }
+      }
+    }
+  });
+}
+
+async function buildContentStyleCSS() {
+  await build({
+    build: {
+      // cssCodeSplit: true,
+      emptyOutDir: false,
+      rollupOptions: {
+        input: {
+          content: 'src/content.scss'
+        },
+        output: {
+          dir: 'dist',
+          assetFileNames: `[name].css`
         }
       }
     }
@@ -78,5 +119,7 @@ async function buildOptionPageSCSS() {
 }
 
 buildPackages();
+buildContentTSX();
 buildOptionPageTSX();
 buildOptionPageSCSS();
+buildContentStyleCSS();

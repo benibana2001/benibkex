@@ -15,6 +15,7 @@
     {
       "matches": ["https://www.amazon.co.jp/*"],
       "js": ["content.js"],
+      "css": ["content.css"],
       "type": "module"
     }
   ],

@@ -34,7 +34,7 @@ function MainDOM() {
     <>
       <div className="container is-max-desktop">
         <section class="content section">
-          <h1 className="title">benibkex</h1>
+          <h1 className="title">Search Library Collection</h1>
           <div className="card">
             <div className="card-header">
               <p className="card-header-title is-3">設定(蔵書検索)</p>
@@ -83,7 +83,7 @@ function MainDOM() {
         <div class="content has-text-centered">
           <p>
             <strong>benibkex</strong> by{' '}
-            <a href="https://wasabi-hu.com">benibana2001</a>
+            <a href="https://github.com/benibana2001">benibana2001</a>
           </p>
         </div>
       </footer>

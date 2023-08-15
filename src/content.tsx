@@ -1,7 +1,7 @@
 import { PrefectureList } from 'benibana_bookdata';
 import { dispatch } from './variable.js';
 import { createRoot, createPortal } from 'react-dom';
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 
 (async () => {
   /**
@@ -106,7 +106,7 @@ function Dialog({ systemid, reserveurl, libraryStock, closeDialog }) {
     const canRent = borrowingStatus.includes('可') ? true : false;
     return (
       existStock && (
-        <tr>
+        <tr className={canRent ? 'is-selected' : ''}>
           <td>{libraryName}</td>
           <td>{borrowingStatus}</td>
         </tr>
@@ -114,33 +114,47 @@ function Dialog({ systemid, reserveurl, libraryStock, closeDialog }) {
     );
   };
 
+  // dialogElementを活性化する
+  useEffect(() => {
+    dialogRef.current.showModal();
+  });
+
+  // 直接関数をDOMに埋め込むとunmountが実行できない
+  const close = () => {
+    closeDialog();
+  };
+
   return (
     // Dialog描画
-    <dialog className={dialogClass} ref={dialogRef}>
-      <div className="wrapper modal-card">
+    <dialog className={dialogClass} ref={dialogRef} onClick={close}>
+      <div className="wrapper modal-card" onClick={(e) => e.stopPropagation()}>
         <header className="modal-card-head">
-          <p className="modal-card-title">benibkex</p>
+          <p className="modal-card-title">Library Stock</p>
 
           {/* 閉じるボタン */}
           <button
             className="delete"
             aria-label="close"
-            onClick={() => {
-              console.log('closeDialog()');
-              closeDialog();
-            }}
+            onClick={close}
           ></button>
         </header>
 
         <section className="modal-card-body">
-          <p className="title is-4 ">{`${getPrefectureName()} の蔵書検索結果`}</p>
+          <p className="title is-4 ">
+            <span>{`${getPrefectureName()}`}</span>
+            <span className="is-6">{`の蔵書検索結果`}</span>
+          </p>
 
           {existStock && (
             <div className="statusBookStock">
-              <table className="table is-striped">
+              <table
+                className="table 
+table is-bordered is-striped is-narrow is-hoverable is-fullwidth"
+              >
                 <thead>
                   <tr>
-                    <th></th>
+                    <th>図書館</th>
+                    <th>蔵書</th>
                   </tr>
                 </thead>
 
@@ -150,20 +164,24 @@ function Dialog({ systemid, reserveurl, libraryStock, closeDialog }) {
             </div>
           )}
 
-          <div className="block">
+          <div className="block mt-5">
             {/* 蔵書がある場合のみボタン表示 */}
             {existStock && (
-              <a className="linkReservePage" href={reserveurl} target="_blank">
+              <a
+                className="linkReservePage button is-link"
+                href={reserveurl}
+                target="_blank"
+              >
                 予約画面を表示
               </a>
             )}
           </div>
         </section>
 
-        <footer className="modal-card-foot">
-          {/* TODO: 設定画面を開く */}
-          <div className="button">設定</div>
-        </footer>
+        {/* TODO: 設定画面を開く */}
+        {/* <footer className="modal-card-foot">
+          <button className="button">設定</button>
+        </footer> */}
       </div>
     </dialog>
   );

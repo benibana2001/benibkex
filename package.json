@@ -1,7 +1,7 @@
 {
   "name": "benibkex",
   "version": "0.0.1",
-  "description": "Chrome Extension to search Tokyo Library",
+  "description": "東京都における図書館の蔵書検索を実行します。また各図書館の提供する公式サイトの予約ページへのリンクを提供します。本拡張機能は株式会社 カーリルが提供する図書館APIを使用しています。当該Chrome拡張機能は、株式会社 カーリルが提供するAPIを利用しています。本拡張機能の制作者は、本拡張機能の使用者に対して一切の責任を持たないものとします。本拡張機能の利用により生じたいかなる損害についても、制作者は一切の責任を負わないものとし、利用者の自己責任において利用するものとします。本拡張機能をご利用される場合は株式会社 カーリルが定める利用規約に同意したものとします。Chrome Extension to search Tokyo Library",
   "main": "index.js",
   "scripts": {
     "build": "npm run clear && npm run bundle && npm run cp",
@@ -12,7 +12,8 @@
     "cp:manifest": "cp manifest.json ./dist",
     "cp:icons": "cp icons/* ./dist",
     "cp:options": "cp src/options/options.html ./dist",
-    "clear": "npx rimraf ./dist"
+    "clear": "npx rimraf ./dist",
+    "zip": "npm run build && zip -r package-0.0.1.zip ./dist"
   },
   "author": "",
   "license": "ISC",

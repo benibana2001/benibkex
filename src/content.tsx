@@ -129,7 +129,7 @@ function Dialog({ systemid, reserveurl, libraryStock, closeDialog }) {
     <dialog className={dialogClass} ref={dialogRef} onClick={close}>
       <div className="wrapper modal-card" onClick={(e) => e.stopPropagation()}>
         <header className="modal-card-head">
-          <p className="modal-card-title">Library Stock</p>
+          <p className="modal-card-title">Search Library Collection</p>
 
           {/* 閉じるボタン */}
           <button
@@ -141,11 +141,10 @@ function Dialog({ systemid, reserveurl, libraryStock, closeDialog }) {
 
         <section className="modal-card-body">
           <p className="title is-4 ">
-            <span>{`${getPrefectureName()}`}</span>
-            <span className="is-6">{`の蔵書検索結果`}</span>
+            <span>{`${getPrefectureName()} の蔵書検索結果`}</span>
           </p>
 
-          {existStock && (
+          {existStock ? (
             <div className="statusBookStock">
               <table
                 className="table 
@@ -162,6 +161,8 @@ table is-bordered is-striped is-narrow is-hoverable is-fullwidth"
                 <tbody>{existStock && libraryStock.map(stockTable)}</tbody>
               </table>
             </div>
+          ) : (
+            <p>蔵書は見つかりませんでした。</p>
           )}
 
           <div className="block mt-5">

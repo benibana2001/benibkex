@@ -8,10 +8,11 @@
     "build_staging": "npm run clear && npm run bundle_staging && npm run cp",
     "bundle": "node ./build.js",
     "bundle_staging": "node ./build.js staging",
-    "cp": "npm run cp:manifest && npm run cp:icons && npm run cp:options",
+    "cp": "npm run cp:manifest && npm run cp:icons && npm run cp:options && npm run cp:popup",
     "cp:manifest": "cp manifest.json ./dist",
     "cp:icons": "cp icons/* ./dist",
     "cp:options": "cp src/options/options.html ./dist",
+    "cp:popup": "cp src/popup/popup.html ./dist",
     "clear": "npx rimraf ./dist",
     "zip": "npm run build && zip -r package-0.0.1.zip ./dist"
   },

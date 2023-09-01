@@ -6,13 +6,16 @@ import {
 } from './contextTree.js';
 import { dispatch } from './variable.js';
 import { Prefecture } from 'benibana_bookdata/dist/CalilPrefecture.js';
+import {
+  TabsCache,
+  getActiveTab,
+  isAmazonItemPage,
+  initializeTabWithISBN,
+  createContextMenuFromTabsCache,
+  activatePopup
+} from './util.js';
 
-/**
- * tabIDとISBNのマップ
- */
-type TabID = number;
-type ISBN = string | '' | undefined;
-const tabs: Map<TabID, ISBN> = new Map();
+const tabs: TabsCache = new Map();
 
 /**
  * isbn13を受け取り格納するハンドラー
@@ -21,41 +24,19 @@ const tabs: Map<TabID, ISBN> = new Map();
 chrome.runtime.onMessage.addListener(async (request, { tab }, sendResponse) => {
   chrome.contextMenus.removeAll();
 
-  /**
-   * ISBNをセット
-   */
   // タブがない場合はreturn
   if (!tab || !tab.id) return;
 
-  // タブを未保持の場合はセットする
-  if (tabs.get(tab.id) === undefined) {
-    tabs.set(tab.id, '');
-  }
+  // Tabを格納
+  initializeTabWithISBN(tab, tabs, request);
 
-  // ISBNがない場合は終了
-  if (!request['isbn13']) {
-    return;
-  }
+  // ContextMenu作成
+  const activeTab = await getActiveTab();
+  if (!activeTab) return;
+  createContextMenuFromTabsCache(activeTab, tabs);
 
-  // tabID, ISBNを保存する
-  tabs.set(tab.id, request['isbn13']);
-
-  // isbnが取得でき,かつタブIDが更新された場合はた場合は更新する
-  if (request['isbn13'] && tabs.get(tab.id) !== request['isbn13']) {
-    tabs.set(tab.id, request['isbn13']);
-  }
-
-  // 送信元のTabIDと現在のTabIDが同じ場合は、ゼロからContextMenuを作る
-  const [currentTab] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true
-  });
-  if (currentTab.id === tab.id) {
-    console.log('UPDATE Context Menu');
-    contexts.forEach((ctx) => chrome.contextMenus.create(ctx));
-  }
-
-  // TODO: ISBNがない旨をpopupに表示する
+  // TODO: popupの更新
+  await activatePopup(activeTab, tabs);
 });
 
 /**
@@ -144,32 +125,19 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
  * Tabを初期化
  *
  * - ContextMenu作成
+ * TODO: Amazon以外のページはPopupの中身を変更
  */
 // ACTIVATEDのときはISBNをstateから取得してメニュー作成
 chrome.tabs.onActivated.addListener(async () => {
   // ContextMenuを一度削除する
   chrome.contextMenus.removeAll();
+  const tab = await getActiveTab();
 
-  // tab取得
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true
-  });
   // ページにtab情報が存在しがない場合は終了
-  if (!tab.url || !tab.id) return;
-  // TabIDを保持していなかったら新規で追加
-  if (tabs.get(tab.id) === undefined) {
-    console.log('create new tab');
-    tabs.set(tab.id, '');
-    return;
-  }
+  if (!tab) return;
 
-  // ISBNがない場合は終了する
-  if (!tabs.get(tab.id)) return;
-
-  //ContextMenuを作成
-  console.log('CREATE NEW Context Menu');
-  contexts.forEach((ctx) => chrome.contextMenus.create(ctx));
+  await createContextMenuFromTabsCache(tab, tabs);
+  await activatePopup(tab, tabs);
 });
 
 /**
@@ -182,9 +150,9 @@ chrome.runtime.onInstalled.addListener(async () => {
     if (!tab.id) return;
     tabs.set(tab.id, '');
     // Amazonの商品ページか判定し、リロードを実行して強制的にcontent.jsを実行させる.ISBNを送信させる
-    const isAmazonItemPage =
-      tab.url?.split('/').includes('dp') && tab.url.includes('amazon.co.jp');
-    if (isAmazonItemPage) chrome.tabs.reload(tab.id);
+    // const isAmazonItemPage =
+    //   tab.url?.split('/').includes('dp') && tab.url.includes('amazon.co.jp');
+    if (isAmazonItemPage(tab.url)) chrome.tabs.reload(tab.id);
   });
 });
 

@@ -1,10 +1,13 @@
 {
   "name": "Search Library Collection",
-  "action": {},
+  "action": {
+    "default_title": "Click to view a popup",
+    "default_popup": "popup.html"
+  },
   "manifest_version": 3,
   "version": "0.1.1",
   "description": "東京都における図書館の蔵書検索を実行します。また各図書館の提供する公式サイトの予約ページへのリンクを提供します。",
-  "permissions": ["contextMenus", "tabs", "storage"],
+  "permissions": ["contextMenus", "tabs", "storage", "declarativeContent"],
   "minimum_chrome_version": "102",
   "background": {
     "service_worker": "service_worker.js",

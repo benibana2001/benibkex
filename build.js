@@ -82,6 +82,28 @@ async function buildOptionPageTSX() {
   });
 }
 
+async function buildPopupTSX() {
+  await build({
+    plugins: [react({ include: /\.(mdx|js|jsx|ts|tsx)$/ })],
+    esbuild: {
+      loader: 'tsx'
+    },
+    build: {
+      minify: STAGING ? false : 'esbuild',
+      emptyOutDir: false,
+      rollupOptions: {
+        input: {
+          popup: 'src/popup/popup.tsx'
+        },
+        output: {
+          dir: 'dist',
+          entryFileNames: `[name].js`
+        }
+      }
+    }
+  });
+}
+
 async function buildContentStyleCSS() {
   await build({
     build: {
@@ -120,6 +142,7 @@ async function buildOptionPageSCSS() {
 
 buildPackages();
 buildContentTSX();
+buildPopupTSX();
 buildOptionPageTSX();
 buildOptionPageSCSS();
 buildContentStyleCSS();

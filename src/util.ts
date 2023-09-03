@@ -5,10 +5,6 @@ export const isAmazonItemPage = (url) =>
   url?.split('/').includes('dp') && isAmazonPage(url);
 
 /**
- * idとurlプロパティをTabに強制する
- * もとはoptional
- */
-/**
  * タブを取得
  * タブのID, またはURLがない場合はnullを返す
  */
@@ -21,8 +17,10 @@ export const getActiveTab = async (): Promise<strictTab | null> => {
   return !tab || !tab.url || !tab.id ? null : (tab as strictTab);
 };
 /**
- * タブの初期化
- * ISBNをセットする
+ * タブの初期化 :
+ * - ISBNをタブのキャッシュにセットする
+ * - すでに存在する場合は上書きする
+ * - ISBNが画面から取得できない場合は終了する
  */
 export const initializeTabWithISBN = (
   tab: Tab | undefined,
@@ -46,8 +44,8 @@ export const initializeTabWithISBN = (
   // tabID, ISBNを保存する
   tabs.set(tab.id, request['isbn13']);
 
-  // isbnが取得でき,かつタブIDが更新された場合はた場合は更新する
-  if (request['isbn13'] && tabs.get(tab.id) !== request['isbn13']) {
+  // ISBNが更新された場合はた場合は更新する
+  if (tabs.get(tab.id) !== request['isbn13']) {
     tabs.set(tab.id, request['isbn13']);
   }
 };
@@ -60,6 +58,9 @@ export async function createContextMenuFromTabsCache(
   tab: strictTab,
   tabs: TabsCache
 ) {
+  // ContextMenuを一度削除する
+  chrome.contextMenus.removeAll();
+
   // TabIDを保持していなかったら新規で追加
   if (tabs.get(tab.id) === undefined) {
     console.log('set new tab id');

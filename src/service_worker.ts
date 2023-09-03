@@ -26,7 +26,6 @@ const tabs: TabsCache = new Map();
  * - isbnが存在しないときはContextMenuを作成しない
  */
 chrome.runtime.onMessage.addListener(async (request, { tab }) => {
-  chrome.contextMenus.removeAll();
 
   // タブがない場合はreturn
   if (!tab || !tab.id) return;
@@ -133,8 +132,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
  */
 // ACTIVATEDのときはISBNをstateから取得してメニュー作成
 chrome.tabs.onActivated.addListener(async () => {
-  // ContextMenuを一度削除する
-  chrome.contextMenus.removeAll();
   const tab = await getActiveTab();
 
   // ページにtab情報が存在しがない場合は終了

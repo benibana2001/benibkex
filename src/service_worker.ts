@@ -7,13 +7,17 @@ import {
 import { dispatch } from './variable.js';
 import { Prefecture } from 'benibana_bookdata/dist/CalilPrefecture.js';
 import {
-  TabsCache,
   getActiveTab,
   isAmazonItemPage,
   initializeTabWithISBN,
   createContextMenuFromTabsCache,
-  activatePopup
+  activatePopup,
+  addTabData,
+  getTabData,
+  clearTabData,
+  getAllStorageData
 } from './util.js';
+import { TabsCache } from './types.js';
 
 const tabs: TabsCache = new Map();
 
@@ -21,7 +25,7 @@ const tabs: TabsCache = new Map();
  * isbn13を受け取り格納するハンドラー
  * - isbnが存在しないときはContextMenuを作成しない
  */
-chrome.runtime.onMessage.addListener(async (request, { tab }, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (request, { tab }) => {
   chrome.contextMenus.removeAll();
 
   // タブがない場合はreturn
@@ -150,10 +154,11 @@ chrome.runtime.onInstalled.addListener(async () => {
     if (!tab.id) return;
     tabs.set(tab.id, '');
     // Amazonの商品ページか判定し、リロードを実行して強制的にcontent.jsを実行させる.ISBNを送信させる
-    // const isAmazonItemPage =
-    //   tab.url?.split('/').includes('dp') && tab.url.includes('amazon.co.jp');
     if (isAmazonItemPage(tab.url)) chrome.tabs.reload(tab.id);
   });
+
+  await clearTabData();
+  console.log(await getAllStorageData());
 });
 
 // タブ削除イベント

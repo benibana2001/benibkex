@@ -1,8 +1,5 @@
-import {
-  contexts,
-  CTX_ID_GET_LIBRARY_COLLECTION_FROM_OPTIONS_DATA,
-  CTX_ID_GET_LIBRARY_COLLECTION_FROM_RADIO
-} from './contextTree.js';
+import { contexts } from './contextTree.js';
+import { strictTab, TabID, ISBN, Tab, TabsCache, TabData } from './types';
 export const isAmazonPage = (url) => url.includes('amazon.co.jp');
 export const isAmazonItemPage = (url) =>
   url?.split('/').includes('dp') && isAmazonPage(url);
@@ -23,14 +20,6 @@ export const getActiveTab = async (): Promise<strictTab | null> => {
 
   return !tab || !tab.url || !tab.id ? null : (tab as strictTab);
 };
-/**
- * tabIDとISBNのマップ
- */
-export type strictTab = Tab & { id: number; url: string };
-export type TabID = number;
-export type ISBN = string | '' | undefined;
-export type Tab = chrome.tabs.Tab;
-export type TabsCache = Map<TabID, ISBN>;
 /**
  * タブの初期化
  * ISBNをセットする
@@ -103,9 +92,51 @@ export async function activatePopup(tab: strictTab, tabs: TabsCache) {
 
     const cachedISBN = tabs.get(tab.id);
     if (!cachedISBN) {
-      console.log('This is AmazonItemPage, but NO CACHE 📖❎');
+      console.log('This is AmazonItemPage, but NO ISBN ⚠️ ');
     } else {
-      console.log('This is AmazonItemPage with ISBN 😀');
+      console.log('This is AmazonItemPage with ISBN ✅');
     }
   });
 }
+
+/**
+ * タブの情報をstorageに保存する
+ * @param id
+ * @param tabData
+ */
+export const addTabData = async (
+  id: TabID,
+  tabData: TabData
+): Promise<void> => {
+  const cached = await chrome.storage.local.get();
+  const cachedTabs = cached.tabs;
+
+  await chrome.storage.local.set({
+    tabs: {
+      ...cachedTabs,
+      [id]: tabData
+    }
+  });
+};
+
+/**
+ * Tabの情報を取得する
+ * @param id
+ * @returns
+ */
+export const getTabData = async (id: TabID): Promise<TabData | null> => {
+  const cached = await chrome.storage.local.get();
+  return cached.tabs[id] || null;
+};
+
+/**
+ * すべてのstorageデータを消去する
+ * - install/uninstall時に実行しないと、古いデータが残り続けてしまう
+ */
+export const clearTabData = async () => {
+  await chrome.storage.local.clear();
+};
+
+export const getAllStorageData = async () => {
+  return await chrome.storage.local.get();
+};

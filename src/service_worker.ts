@@ -6,18 +6,15 @@ import {
 } from './contextTree.js';
 import { dispatch } from './variable.js';
 import { Prefecture } from 'benibana_bookdata/dist/CalilPrefecture.js';
+import { isAmazonItemPage } from './util.js';
+import { getActiveTab, initializeTabWithISBN } from './modules/tabs.js';
 import {
-  getActiveTab,
-  isAmazonItemPage,
-  initializeTabWithISBN,
-  createContextMenuFromTabsCache,
-  activatePopup,
-  addTabData,
-  getTabData,
-  clearTabData,
-  getAllStorageData
-} from './util.js';
+  getAllStorageData,
+  clearTabData
+} from './modules/storages.js';
 import { TabsCache } from './types.js';
+import { createContextMenuFromTabsCache } from './modules/contextMenu.js';
+import { activatePopup } from './modules/popups.js';
 
 const tabs: TabsCache = new Map();
 
@@ -26,7 +23,6 @@ const tabs: TabsCache = new Map();
  * - isbnが存在しないときはContextMenuを作成しない
  */
 chrome.runtime.onMessage.addListener(async (request, { tab }) => {
-
   // タブがない場合はreturn
   if (!tab || !tab.id) return;
 

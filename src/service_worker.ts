@@ -1,19 +1,11 @@
-import { beniBook } from 'benibana_bookdata';
-import {
-  contexts,
-  CTX_ID_GET_LIBRARY_COLLECTION_FROM_OPTIONS_DATA,
-  CTX_ID_GET_LIBRARY_COLLECTION_FROM_RADIO
-} from './contextTree.js';
-import { dispatch } from './variable.js';
-import { Prefecture } from 'benibana_bookdata/dist/CalilPrefecture.js';
 import { isAmazonItemPage } from './util.js';
 import { getActiveTab, initializeTabWithISBN } from './modules/tabs.js';
-import {
-  getAllStorageData,
-  clearTabData
-} from './modules/storages.js';
+import { getAllStorageData, clearTabData } from './modules/storages.js';
 import { TabsCache } from './types.js';
-import { createContextMenuFromTabsCache } from './modules/contextMenu.js';
+import {
+  clickContextMenuHandler,
+  createContextMenuFromTabsCache
+} from './modules/contextMenu.js';
 import { activatePopup } from './modules/popups.js';
 
 const tabs: TabsCache = new Map();
@@ -38,91 +30,12 @@ chrome.runtime.onMessage.addListener(async (request, { tab }) => {
   await activatePopup(activeTab, tabs);
 });
 
-/**
- * 書影検索
- * - ContextMenuクリックでCalil接続 + contentsに結果を送信
- * - ISBNがない場合は検索を実行しない
- * - 蔵書が図書館にない場合もからの情報をcontentsに送信
- */
-
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  const tabID = tab?.id;
-  if (!tabID) return;
-
-  // ISBNの有無を確認
-  const isbn = tabs.get(tabID);
-  if (!isbn) return;
-
-  // CaliのオプションをInit
-  const CALIL_KEY = '46a2412f4ceb07b72a251150f2533c74';
-  const pollingDuration = 500;
-
-  // ラジオボタンから検索する
-  if (info.parentMenuItemId === CTX_ID_GET_LIBRARY_COLLECTION_FROM_RADIO) {
-    // CalilAPIに接続し蔵書検索を実行
-    const systemid = info.menuItemId as Prefecture;
-    const res = await beniBook.searchLibraryCollections({
-      appkey: CALIL_KEY,
-      isbn,
-      systemid,
-      pollingDuration
-    });
-    const { libraryStock, reserveurl } = res;
-    // 現在のタブのcontentに結果を送信
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      lastFocusedWindow: true
-    });
-
-    if (!tab.id) return;
-    await chrome.tabs.sendMessage(tab.id, {
-      action: dispatch[1],
-      payload: {
-        systemid,
-        reserveurl,
-        libraryStock
-      }
-    });
-    return;
-  }
-
-  // デフォルトで設定した地域から検索を実行
-  if (info.menuItemId === CTX_ID_GET_LIBRARY_COLLECTION_FROM_OPTIONS_DATA) {
-    chrome.storage.sync.get('value', async (val) => {
-      // val を使用して検索を実行
-      const res = await beniBook.searchLibraryCollections({
-        appkey: CALIL_KEY,
-        isbn,
-        systemid: val.value,
-        pollingDuration
-      });
-      const { libraryStock, reserveurl } = res;
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        lastFocusedWindow: true
-      });
-
-      if (!tab.id) return;
-      await chrome.tabs.sendMessage(tab.id, {
-        action: dispatch[1],
-        payload: {
-          systemid: val.value,
-          reserveurl,
-          libraryStock
-        }
-      });
-      return;
-    });
-    return;
-  }
-
-  // 予期せぬ要素がクリックされた場合はエラーとする
-  console.log('INVALID ID WAS CLICKED !!!');
+  clickContextMenuHandler(info, tab, tabs);
 });
 
 /**
  * Tabを初期化
- *
  * - ContextMenu作成
  * TODO: Amazon以外のページはPopupの中身を変更
  */
